@@ -7,7 +7,8 @@ export const DashboardContext = createContext();
 const initialState = {
   user:null,
   socialAccounts: [],
-  analytics: {}
+  analytics: {},
+  platformData:{}
 };
 
 const reducer = (state,action) => {
@@ -15,6 +16,7 @@ const reducer = (state,action) => {
     case 'SET_USER' : return {...state, user:action.payload}
     case 'SET_SOCIAL_ACCOUNTS' :return {...state,socialAccounts:action.payload}
     case 'SET_ANALYTICS' : return {...state,analytics:action.payload}
+    case 'SET_PLATFORM_DATA': return{...state,platformData:{...state.platformData,[action.platform]:action.data}}
     default:return state;
   }
 };
@@ -25,6 +27,11 @@ const reducer = (state,action) => {
   useEffect (() =>{
     const unsub = onAuthStateChanged(auth,user => {
       dispatch({type:'SET_USER',payload:user})
+
+      if (user) {
+        const providers = user.providerData.map(p => p.providerId.replace('.com',''))
+        dispatch({type:'SET_SOCIAL_ACCOUNTS',payload:providers})
+      }
     });
     return() =>unsub();
   },[]);

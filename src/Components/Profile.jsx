@@ -13,9 +13,9 @@ function Profile() {
   const [name, setName] = useState("");
   const [photo, setPhoto] = useState("");
   const [message, setMessage] = useState("");
-  const [saving, setSaving] = useState("false");
+  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [editMode, setEditMode] = useState("false");
+  const [editMode, setEditMode] = useState(false);
   const [newImage, setNewImage] = useState(null);
 
   const providerIcons = {
