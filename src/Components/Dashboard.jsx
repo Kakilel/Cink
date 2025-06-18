@@ -1,6 +1,6 @@
 import React from 'react'
 
-function SignUp() {
+function Dashboard() {
   return (
     <>
     
@@ -8,4 +8,4 @@ function SignUp() {
   )
 }
 
-export default SignUp
+export default Dashboard
