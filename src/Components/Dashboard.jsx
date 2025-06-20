@@ -1,6 +1,8 @@
 import React, { useState, useContext, useEffect } from "react";
 import { DashboardContext } from "../Contexts/DashboardContext";
 import axios from "axios";
+import {doc, setDoc} from 'firebase/firestore'
+import {db} from '../firecase' 
 
 function Dashboard() {
   const { user, socialAccounts, platformData } = useContext(DashboardContext);
@@ -167,6 +169,9 @@ function Dashboard() {
             <p><strong>Username:</strong> {instagram.username}</p>
             <p><strong>Account Type:</strong> {instagram.account_type}</p>
             <p><strong>Media Count:</strong> {instagram.media_count}</p>
+            <p><strong>Followers:</strong> {instagram.followers_count || 'N/A'}</p>
+            <p><strong>Likes:</strong> {instagram.likes_count || 'N/A'}</p>
+            <p><strong>Comments:</strong> {instagram.comments_count || 'N/A'}</p>
           </div>
         ) : (
           <div>
