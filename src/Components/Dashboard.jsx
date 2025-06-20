@@ -27,7 +27,7 @@ function Dashboard() {
   const [spotifyProfile, setSpotifyProfile] = useState(null);
 
   const SPOT_ID = "f7c5cf00ad794d248d9f18a6e93111ac";
-  const SPOT_URI = "https://cink.vercel.app/"; 
+  const SPOTIFY_URI = "https://cink.vercel.app/"; 
   const SPOT_SCOPES = ["user-read-private", "user-read-email"];
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
 
@@ -48,10 +48,7 @@ function Dashboard() {
   }, [spotifyToken]);
 
   const loginWithSpotify = () => {
-    const spotUrl = `${AUTH_ENDPOINT}?client_id=${SPOT_ID}&redirect_uri=${encodeURIComponent(
-      SPOT_URI
-    )}&response_type=token&scope=${SPOT_SCOPES.join("%20")}`;
-    window.location.href = spotUrl;
+    window.location.href ='api/spotify/login';
   };
 
   const fetchSpotifyProfile = async () => {
