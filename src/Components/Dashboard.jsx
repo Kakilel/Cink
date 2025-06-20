@@ -26,8 +26,8 @@ function Dashboard() {
   const [spotifyToken, setSpotifyToken] = useState(null);
   const [spotifyProfile, setSpotifyProfile] = useState(null);
 
-  const SPOT_ID = "95dac5031f664383822de1395947c85d";
-  const SPOT_URI = "http://localhost:5173/spotify-callback"; 
+  const SPOT_ID = "f7c5cf00ad794d248d9f18a6e93111ac";
+  const SPOT_URI = "http://https://cink.vercel.app/"; 
   const SPOT_SCOPES = ["user-read-private", "user-read-email"];
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
 
