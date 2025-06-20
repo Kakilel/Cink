@@ -9,7 +9,7 @@ function Sidebar() {
     <Link to='/'>Home</Link>
     <Link to=''></Link>
     <Link to=''></Link>
-    <Link to=''></Link>
+    <Link to='/login'></Link>
     <Link to='/profile'>Profile</Link>
    </nav>
     </>

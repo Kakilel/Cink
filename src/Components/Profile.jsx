@@ -14,7 +14,7 @@ function Profile() {
   const [photo, setPhoto] = useState("");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [newImage, setNewImage] = useState(null);
 
@@ -64,11 +64,11 @@ function Profile() {
         payload: { ...user, displayName: name, photoURL: uploadedURL || photo },
       });
       setPhoto(uploadedURL || photo);
-      setMessage("Profile updated successfully.");
+      setMessage("Profile updated .");
       setEditMode(false);
     } catch (error) {
       console.error(error);
-      setMessage(" Failed to update profile.");
+      setMessage(" Could'nt update profile.");
     }
     setSaving(false);
   };
@@ -76,6 +76,26 @@ function Profile() {
   const handleLogout = () => {
     navigate("/login");
   };
+  const handleRemoveAcc = async (providerId) =>{
+    if(!user)return;
+    try{
+      if(user.providerData.length <= 1){
+        setMessage('At least on account must be connected')
+        return;
+      }
+
+      await unlink(user,providerId);
+      const updatedProviders = user.providerData
+      .filter((p) => p.providerId !== providerId)
+      .map((p) =>p.providerId);
+
+      dispatch({ type: "SET_SOCIAL_ACCOUNTS", payload: updatedProviders });
+      setMessage(`Successfully removed ${providerId} account.`);
+    }catch (error){
+      console.error("Error removing account:", error);
+      setMessage(`Failed to remove ${providerId} account.`);
+    }
+  }
 
   if (loading) return <p>Loading profile...</p>;
   if (!user) return <p>No user is currently logged in.</p>;
@@ -131,16 +151,19 @@ function Profile() {
 
               <div>
                 <strong>Connected via:</strong>
-                <ul className="mt-2 space-y-1">
+                <ul>
                   {socialAccounts.map((providerId, idx) => {
                     const info = providerIcons[providerId] || {
                       icon: null,
                       label: providerId,
                     };
                     return (
-                      <li key={idx} className="flex items-center gap-2">
+                      <li key={idx}>
                         {info.icon}
-                        <span>{info.label}</span>
+                        <span>{info.label || providerId}</span>
+                        {user.providerData.length > 1 && (
+                          <button onClick={() => handleRemoveAcc(providerId)}>Remove Account</button>
+                        )}
                       </li>
                     );
                   })}

@@ -17,6 +17,7 @@ const reducer = (state,action) => {
     case 'SET_SOCIAL_ACCOUNTS' :return {...state,socialAccounts:action.payload}
     case 'SET_ANALYTICS' : return {...state,analytics:action.payload}
     case 'SET_PLATFORM_DATA': return{...state,platformData:{...state.platformData,[action.platform]:action.data}}
+    case 'SET_INSTAGRAM_DATA' : return {...state,platformData:{...state.platformData,instagram:action.payload,}}
     default:return state;
   }
 };
