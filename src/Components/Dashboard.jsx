@@ -29,6 +29,9 @@ function Dashboard() {
   const [topArtists,setTopArtists] = useState([])
   const [playlists,setPlaylists] = useState([])
   const [currentlyPlaying,setCurrentlyPlaying] = useState(null)
+
+
+  
   
 
 
@@ -133,15 +136,15 @@ function Dashboard() {
 
   // Instagram
   const loginWithInstagram = () => {
-    const CLIENT_ID = "3975929792720936";
-    const REDIRECT_URI = "http://localhost:3000/instagram-callback";
-    const SCOPE = "user_profile,user_media";
-    const authURL = `https://api.instagram.com/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
-      REDIRECT_URI
-    )}&scope=${SCOPE}&response_type=code`;
+ const CLIENT_ID = process.env.REACT_APP_IG_CLIENT_ID;
+  const REDIRECT_URI = process.env.REACT_APP_IG_REDIRECT_URI;
+    const SCOPES = "instagram_basic,pages_show_list";
+     const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
+    REDIRECT_URI
+  )}&scope=${SCOPES}&response_type=code`;
 
-    window.location.href = authURL;
-  };
+  window.location.href = authUrl;
+};
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
