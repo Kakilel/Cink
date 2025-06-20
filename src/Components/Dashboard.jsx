@@ -26,19 +26,15 @@ function Dashboard() {
   const [spotifyToken, setSpotifyToken] = useState(null);
   const [spotifyProfile, setSpotifyProfile] = useState(null);
 
-  const SPOT_ID = "f7c5cf00ad794d248d9f18a6e93111ac";
-  const SPOTIFY_URI = "https://cink.vercel.app/"; 
-  const SPOT_SCOPES = ["user-read-private", "user-read-email"];
-  const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
+
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash && hash.includes("access_token")) {
-      const params = new URLSearchParams(hash.substring(1));
-      const token = params.get("access_token");
-      setSpotifyToken(token);
-      window.location.hash = "";
-    }
+ const params = new URLSearchParams(window.location.search);
+ const token = params.get('access_token')
+ if (token) {
+  setSpotifyToken(token);
+  window.history.replaceState({},document.title,'/dashboard')
+ }
   }, []);
 
   useEffect(() => {
@@ -149,16 +145,22 @@ function Dashboard() {
             </div>
           </div>
         ) : (
-          <button
-            onClick={loginWithSpotify}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-          >
-            Connect Spotify
-          </button>
-        )}
+          <>
+          {spotifyToken && <p>Loading Spotify Profile...</p>}
+          {!spotifyToken && (
+            <button
+              onClick={loginWithSpotify}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            >
+              Connect Spotify
+            </button>
+                    )}
+          </>
+          )}
       </div>
     </div>
   );
 }
+
 
 export default Dashboard;
