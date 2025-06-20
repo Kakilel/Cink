@@ -138,7 +138,7 @@ function Dashboard() {
 
   // Instagram
   const loginWithInstagram = () => {
- const CLIENT_ID = ' 1235992151363475';
+ const CLIENT_ID = ' 1451947249561861';
   const REDIRECT_URI = 'https://cink.vercel.app/instagram-callback';
     const SCOPES = "instagram_basic,pages_show_list";
      const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(

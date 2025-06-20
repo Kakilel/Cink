@@ -2,8 +2,8 @@
 const axios = require("axios");
 const querystring = require("querystring");
 
-const CLIENT_ID = ' 1235992151363475';
-const CLIENT_SECRET =' c8bd3e4872f991a6cac1900ca953fd08';
+const CLIENT_ID = ' 1451947249561861';
+const CLIENT_SECRET ='d331471d9cc3bf0b86e0ebaa1ce2434d';
 const REDIRECT_URI = 'https://cink.vercel.app/instagram-callback';
 
 export default async function handler(req, res) {
