@@ -1,10 +1,11 @@
-import React, { useContext } from "react";
+import React, { useState,useContext, useEffect } from "react";
 import { DashboardContext } from "../Contexts/DashboardContext";
-
+import axios from "axios";
 function Dashboard() {
+
+  // INSTAGRAM
   const { user, socialAccounts, platformData } = useContext(DashboardContext);
   const instagram = platformData?.instagram;
-
   const loginWithInstagram = () => {
     const CLIENT_ID = "3975929792720936";
     const REDIRECT_URI = "http://localhost:3000/instagram-callback";
@@ -15,6 +16,71 @@ function Dashboard() {
 
     window.location.href = authURL;
   };
+
+
+  //GITHUB
+  const [githubData, setGithubData] = useState(null);
+  const githubUsername = 'Kakilel'
+  useEffect(() =>{
+    const fetchGithubData = async() =>{
+      try{
+        const res = await axios.get(`https://api.github.com/users/${githubUsername}`)
+        setGithubData(res.data);
+      } catch (error){
+        console.error('Failed to fetch Github data',error)
+      }
+    }
+    fetchGithubData();
+  },[]);
+
+
+
+  //SPOTIFY
+  const [spotifyToken , setSpotifyToken] = useState(null)
+  const [spotifyProfile,setSpotifyProfile] = useState(null);
+
+  const SPOT_ID = '95dac5031f664383822de1395947c85d'
+const SPOT_URI = 'http://localhost:3000/spotify-callback';
+  const SPOT_SCOPES = ['user-read-private', 'user-read-email']
+  const AUTH_ENDPOINT = 'https://accounts.spotify.com/authorize'
+  
+
+
+  useEffect(() =>{
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token')){
+      const params = new URLSearchParams(hash.substring(1));
+      const token = params.get('access_token');
+      setSpotifyToken(token);
+      window.location.hash = '';
+    }
+  },[])
+  useEffect(() =>{
+    if(spotifyToken){
+      console.log('Spotify Token:', spotifyToken)
+      fetchSpotifyProfile();
+    }
+  },[spotifyToken] )
+
+  const loginWithSpotify = () =>{
+    const spotUrl = `${AUTH_ENDPOINT}?client_id=${SPOT_ID}&redirect_uri=${encodeURIComponent(SPOT_URI)}&response_type=token&scope=${SPOT_SCOPES.join('')}`;
+    window.location.href = spotUrl;
+  };
+
+  const fetchSpotifyProfile=async () =>{
+    try{
+      const res = await axios.get('https://api.spotify.com/v1/me',{
+        headers: {
+          Authorization:`Bearer ${spotifyToken}`,
+        },
+      });
+      setSpotifyProfile(res.data);
+    }catch (error){
+      console.error('Failed to fetch Spotify Profile', error);
+    }
+  };
+
+
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -29,6 +95,8 @@ function Dashboard() {
         <p className="text-red-600 font-medium">No user logged in.</p>
       )}
 
+
+      {/* INSTAGRAM */}
       <div className="mb-8 bg-white p-4 rounded shadow">
         <h3 className="text-lg font-semibold mb-3">Instagram Status</h3>
         {instagram ? (
@@ -50,6 +118,7 @@ function Dashboard() {
         )}
       </div>
 
+
       {instagram && (
         <div className="bg-white p-4 rounded shadow">
           <h3 className="text-lg font-semibold mb-4">Widgets</h3>
@@ -67,6 +136,45 @@ function Dashboard() {
               <p className="text-gray-600 text-sm">{instagram.account_type}</p>
             </div>
           </div>
+
+
+      {/* GITHUB */}
+      <div>
+        <h3>Github Status</h3>
+        {githubData ?(
+          <div>
+            <img src={githubData.avatar_url} alt="Github avatar" />
+            <div>
+              <p><strong>Username:</strong> {githubData.login}</p>
+              <p><strong>Bio:</strong> {githubData.bio || "No bio"}</p>
+              <p><strong>Public Repos:</strong> {githubData.public_repos}</p>
+              <p><strong>Followers:</strong> {githubData.followers}</p>
+            </div>
+          </div>
+        ):(
+          <p>Loading Github Data... </p>
+        )}
+      </div>
+
+          {/*  SPOTIFY*/}
+          <div>
+            <h3>Spotify Status</h3>
+            {spotifyProfile ?(
+              <div>
+                <img src={spotifyProfile.images?.[0]?.url} alt="Spotify Avatar" />
+
+                <div>
+                  <p><strong>Name:</strong>{spotifyProfile.display_name}</p>
+                  <p><strong>Email:</strong>{spotifyProfile.email}</p>
+                  <p><strong>Followers:</strong>{spotifyProfile.followers.total}</p>
+                  <p><strong>Account Type:</strong>{spotifyProfile.product}</p>
+                </div>
+              </div>
+            ):(
+              <button onClick={loginWithSpotify}>Connect Spotify</button>
+            )}
+          </div>
+
         </div>
       )}
     </div>
