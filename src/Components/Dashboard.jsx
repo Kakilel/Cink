@@ -27,7 +27,7 @@ function Dashboard() {
   const [spotifyProfile, setSpotifyProfile] = useState(null);
 
   const SPOT_ID = "f7c5cf00ad794d248d9f18a6e93111ac";
-  const SPOT_URI = "http://https://cink.vercel.app/"; 
+  const SPOT_URI = "https://cink.vercel.app/"; 
   const SPOT_SCOPES = ["user-read-private", "user-read-email"];
   const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize";
 
