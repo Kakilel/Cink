@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { DashboardContext } from "../Contexts/DashboardContext";
 import axios from "axios";
 import {doc, setDoc} from 'firebase/firestore'
-import {db} from '../firebase' 
+import {db} from '../firebase';
 
 function Dashboard() {
   const { user, socialAccounts, platformData } = useContext(DashboardContext);
