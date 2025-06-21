@@ -21,6 +21,7 @@
     "express": "^5.1.0",
     "firebase": "^11.9.1",
     "install": "^0.13.0",
+    "pkce-challenge": "^5.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
