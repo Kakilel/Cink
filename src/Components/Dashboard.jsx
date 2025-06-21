@@ -10,7 +10,7 @@ function Dashboard() {
 
   // GitHub
   const [githubData, setGithubData] = useState(null);
-  const githubUsername = "Kakilel";
+  const githubUsername = "18Mori";
 
   useEffect(() => {
     const fetchGithubData = async () => {
@@ -137,16 +137,28 @@ function Dashboard() {
   };
 
   // Instagram
-  const loginWithInstagram = () => {
- const CLIENT_ID = ' 1451947249561861';
-  const REDIRECT_URI = 'https://cink.vercel.app/instagram-callback';
-    const SCOPES = "instagram_basic,pages_show_list";
-     const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
+const loginWithInstagram = () => {
+  const CLIENT_ID =' 1060487742258819';
+  const REDIRECT_URI = process.env.REACT_APP_IG_REDIRECT_URI;
+  const SCOPE = "instagram_basic,instagram_graph_user_media";
+  const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
     REDIRECT_URI
-  )}&scope=${SCOPES}&response_type=code`;
+  )}&scope=${SCOPE}&response_type=code`;
 
   window.location.href = authUrl;
 };
+
+const fetchInstagramProfile = async (token) => {
+  const res = await axios.get(`https://graph.facebook.com/v19.0/me`, {
+    params: {
+      fields: "id,username,account_type",
+      access_token: token,
+    },
+  });
+  console.log(res.data); // Save or display
+};
+
+
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
