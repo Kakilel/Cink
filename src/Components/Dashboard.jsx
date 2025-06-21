@@ -59,7 +59,7 @@ function Dashboard() {
 
   const loginWithSpotify = () => {
     window.location.href ='api/spotify/login';
-  };
+  }
 
   const fetchSpotifyProfile = async () => {
     try {
