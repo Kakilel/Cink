@@ -23,4 +23,4 @@ export default async function handler(req, res) {
     console.error("TikTok token error:", err.response?.data || err.message);
     res.status(500).send("Failed to get TikTok token");
   }
-}
+};
