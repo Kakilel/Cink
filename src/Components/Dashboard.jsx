@@ -1,791 +1,245 @@
-import React, { useState, useContext, useEffect } from "react";
+// src/Components/Dashboard.jsx
+import { useContext, useEffect, useState } from "react";
 import { DashboardContext } from "../Contexts/DashboardContext";
-import axios from "axios";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "../firebase";
-import pkceChallenge from "pkce-challenge";
-import { generateCodeVerifier, generateCodeChallenge } from "../utils/pkce";
+import Spotify from "./platforms/Spotify";
+import Discord from "./platforms/Discord";
+import Instagram from "./platforms/Instagram";
+import LinkedIn from "./platforms/LinkedIn";
+import Github from "./platforms/Github";
+import Twitter from "./platforms/Twitter";
+import Reddit from "./platforms/Reddit";
+import Tiktok from "./platforms/Tiktok";
+import {
+  FaSpotify,
+  FaDiscord,
+  FaInstagram,
+  FaLinkedin,
+  FaGithub,
+  FaTwitter,
+  FaReddit,
+  FaTiktok,
+  FaSun,
+  FaMoon,
+} from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
 
 function Dashboard() {
-  const { user, socialAccounts, platformData } = useContext(DashboardContext);
-  const instagram = platformData?.instagram;
+  const { user } = useContext(DashboardContext);
+  const [platformData, setPlatformData] = useState({});
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const storedTheme = localStorage.getItem("theme");
+    return storedTheme === "light" ? false : true;
+  });
 
-  // GitHub
-  const [githubData, setGithubData] = useState(null);
-  const githubUsername = "1";
+  const handleData = (platform, data) => {
+    setPlatformData((prev) => ({ ...prev, [platform]: data }));
+  };
+
+  const handlePlatformLogin = (platform) => {
+    setShowPrompt(false);
+    switch (platform) {
+      case "spotify":
+        window.location.href = "/api/spotify/login";
+        break;
+      case "discord":
+        window.location.href = "/api/discord/login";
+        break;
+      case "instagram":
+        window.location.href = `https://www.facebook.com/v19.0/dialog/oauth?client_id=1060487742258819&redirect_uri=${encodeURIComponent(
+          process.env.REACT_APP_IG_REDIRECT_URI
+        )}&scope=instagram_basic,instagram_graph_user_media&response_type=code`;
+        break;
+      case "linkedin":
+        window.location.href = "/api/linkedin/login";
+        break;
+      case "github":
+        window.location.href = "/api/github/login";
+        break;
+      case "twitter":
+        window.location.href = "/api/twitter/login";
+        break;
+      case "reddit":
+        window.location.href = "/api/reddit/login";
+        break;
+      case "tiktok":
+        window.location.href = "/api/tiktok/login";
+        break;
+      default:
+        break;
+    }
+  };
 
   useEffect(() => {
-    const fetchGithubData = async () => {
-      try {
-        const res = await axios.get(
-          `https://api.github.com/users/${githubUsername}`
-        );
-        setGithubData(res.data);
-      } catch (error) {
-        console.error("Failed to fetch Github data", error);
-      }
-    };
-    fetchGithubData();
-  }, []);
+    document.documentElement.classList.toggle("dark", darkMode);
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
 
-  // Spotify
-  const [spotifyToken, setSpotifyToken] = useState(null);
-  const [spotifyProfile, setSpotifyProfile] = useState(null);
-  const [topTracks, setTopTracks] = useState([]);
-  const [topArtists, setTopArtists] = useState([]);
-  const [playlists, setPlaylists] = useState([]);
-  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("access_token");
-    if (token) {
-      setSpotifyToken(token);
-      window.history.replaceState({}, document.title, "/dashboard");
-    }
-  }, []);
-
-  useEffect(() => {
-    if (spotifyToken) {
-      fetchSpotifyProfile();
-      fetchTopTracks();
-      fetchTopArtists();
-      fetchPlaylists();
-      fetchCurrentlyPlaying();
-    }
-  }, [spotifyToken]);
-
-  const loginWithSpotify = () => {
-    window.location.href = "api/spotify/login";
-  };
-
-  const fetchSpotifyProfile = async () => {
-    try {
-      const res = await axios.get("https://api.spotify.com/v1/me", {
-        headers: {
-          Authorization: `Bearer ${spotifyToken}`,
-        },
-      });
-      setSpotifyProfile(res.data);
-      saveSpotifyData("profile", res.data);
-    } catch (error) {
-      console.error("Failed to fetch Spotify Profile", error);
-    }
-  };
-
-  const saveSpotifyData = async (dataType, type) => {
-    if (!user) return;
-
-    const userDocRef = doc(db, "spotify", user.uid);
-    try {
-      await setDoc(userDocRef, { [dataType]: data }, { merge: true });
-      console.log(`${data.Type} saved to Firestore`);
-    } catch (error) {
-      console.error(`Failed to save ${dataType}:`, error);
-    }
-  };
-
-  const fetchTopTracks = async () => {
-    try {
-      const res = await axios.get(
-        "https://api.spotify.com/v1/me/top/tracks?limit=10",
-        {
-          headers: { Authorization: `Bearer ${spotifyToken}` },
-        }
-      );
-      setTopTracks(res.data.items);
-      saveSpotifyData("topTracks", res.data.items);
-    } catch (error) {
-      console.error("Error fetching top tracks.");
-    }
-  };
-  const fetchTopArtists = async () => {
-    try {
-      const res = await axios.get(
-        "https://api.spotify.com/v1/me/top/artists?limit=10",
-        {
-          headers: { Authorization: `Bearer ${spotifyToken}` },
-        }
-      );
-      setTopArtists(res.data.items);
-      saveSpotifyData("topArtists", res.data.items);
-    } catch (error) {
-      console.error("Error fetching top artists.");
-    }
-  };
-  const fetchPlaylists = async () => {
-    try {
-      const res = await axios.get(
-        "https://api.spotify.com/v1/me/playlists?limit=10",
-        {
-          headers: { Authorization: `Bearer ${spotifyToken}` },
-        }
-      );
-      setPlaylists(res.data.items);
-      saveSpotifyData("playlists", res.data.items);
-    } catch (error) {
-      console.error("Error fetching playlists.");
-    }
-  };
-  const fetchCurrentlyPlaying = async () => {
-    try {
-      const res = await axios.get(
-        "https://api.spotify.com/v1/me/player/currently-playing?limit=10",
-        {
-          headers: { Authorization: `Bearer ${spotifyToken}` },
-        }
-      );
-      if (res.status === 200 && res.data) {
-        setCurrentlyPlaying(res.data);
-        saveSpotifyData("currentlyPlaying", res.data);
-      }
-    } catch (error) {
-      console.error("Error fetching top tracks.");
-    }
-  };
-
-  // Instagram
-  const loginWithInstagram = () => {
-    const CLIENT_ID = " 1060487742258819";
-    const REDIRECT_URI = process.env.REACT_APP_IG_REDIRECT_URI;
-    const SCOPE = "instagram_basic,instagram_graph_user_media";
-    const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
-      REDIRECT_URI
-    )}&scope=${SCOPE}&response_type=code`;
-
-    window.location.href = authUrl;
-  };
-
-  const fetchInstagramProfile = async (token) => {
-    const res = await axios.get(`https://graph.facebook.com/v19.0/me`, {
-      params: {
-        fields: "id,username,account_type",
-        access_token: token,
-      },
-    });
-    console.log(res.data); // Save or display
-  };
-
-  //Twitter
-
-  const [twitterToken, setTwitterToken] = useState(null);
-  const [twitterData, setTwitterData] = useState(null);
-  const [tweets, setTweets] = useState([]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("twitter_token"); // your backend should redirect with ?twitter_token=...
-    if (token) {
-      setTwitterToken(token);
-      window.history.replaceState({}, document.title, "/dashboard");
-    }
-  }, []);
-
-  useEffect(() => {
-    if (twitterToken) {
-      fetchTwitterProfile();
-      fetchTwitterTweets();
-    }
-  }, [twitterToken]);
-
-  const fetchTwitterProfile = async () => {
-    try {
-      const res = await axios.get(
-        "https://api.twitter.com/2/users/me?user.fields=public_metrics,profile_image_url",
-        {
-          headers: {
-            Authorization: `Bearer ${twitterToken}`,
-          },
-        }
-      );
-      setTwitterData(res.data.data);
-      saveTwitterData("profile", res.data.data);
-    } catch (err) {
-      console.error("Failed to fetch Twitter profile", err);
-    }
-  };
-
-  const fetchTwitterTweets = async () => {
-    try {
-      const userRes = await axios.get("https://api.twitter.com/2/users/me", {
-        headers: { Authorization: `Bearer ${twitterToken}` },
-      });
-      const userId = userRes.data.data.id;
-
-      const tweetRes = await axios.get(
-        `https://api.twitter.com/2/users/${userId}/tweets?tweet.fields=public_metrics,created_at`,
-        {
-          headers: {
-            Authorization: `Bearer ${twitterToken}`,
-          },
-        }
-      );
-      setTweets(tweetRes.data.data);
-      saveTwitterData("tweets", tweetRes.data.data);
-    } catch (err) {
-      console.error("Failed to fetch tweets", err);
-    }
-  };
-
-  const saveTwitterData = async () => {
-    if (!user) return;
-    try {
-      await setDoc(
-        doc(db, "twitter", user.uid),
-        { [field]: data },
-        { merge: true }
-      );
-      console.log(`${field} saved to Firestore`);
-    } catch (error) {
-      console.error(`Error saving ${field}:`, error);
-    }
-  };
-
-//Discord
-
-const [discordToken, setDiscordToken] = useState(null);
-const [discordUser, setDiscordUser] = useState(null);
-
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("discord_token");
-  if (token) {
-    setDiscordToken(token);
-    window.history.replaceState({}, document.title, "/dashboard");
-  }
-}, []);
-
-useEffect(() => {
-  if (discordToken) fetchDiscordProfile();
-}, [discordToken]);
-
-const fetchDiscordProfile = async () => {
-  try {
-    const res = await axios.get("https://discord.com/api/users/@me", {
-      headers: { Authorization: `Bearer ${discordToken}` },
-    });
-    setDiscordUser(res.data);
-    saveDiscordData("profile", res.data); // ✅ Save to Firestore
-  } catch (err) {
-    console.error("Failed to fetch Discord user", err);
-  }
-};
-
-
-const loginWithDiscord = () => {
-  window.location.href = "/api/discord/login";
-};
-
-const saveDiscordData = async (field, data) => {
-  if (!user) return;
-  try {
-    await setDoc(
-      doc(db, "discord", user.uid),
-      { [field]: data },
-      { merge: true }
-    );
-    console.log(`${field} saved to Firestore`);
-  } catch (error) {
-    console.error(`Error saving ${field}:`, error);
-  }
-};
-
-//Reddit
-
-const [redditToken, setRedditToken] = useState(null);
-const [redditData, setRedditData] = useState(null);
-
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("reddit_token");
-  if (token) {
-    setRedditToken(token);
-    window.history.replaceState({}, document.title, "/dashboard");
-  }
-}, []);
-
-useEffect(() => {
-  if (redditToken) {
-    fetchRedditData();
-    fetchRedditSubs();
-  }
-}, [redditToken]);
-
-const fetchRedditData = async () => {
-  try {
-    const profileRes = await axios.get("https://oauth.reddit.com/api/v1/me", {
-      headers: { Authorization: `Bearer ${redditToken}` },
-    });
-
-    const profile = profileRes.data;
-    setRedditData(profile);
-    await saveRedditData("profile", profile);
-  } catch (err) {
-    console.error("Failed to fetch Reddit profile", err);
-  }
-};
-
-const fetchRedditSubs = async () => {
-  try {
-    const subsRes = await axios.get(
-      "https://oauth.reddit.com/subreddits/mine/subscriber",
-      {
-        headers: { Authorization: `Bearer ${redditToken}` },
-      }
-    );
-
-    const subs = subsRes.data.data.children.map((s) => s.data.display_name);
-    await saveRedditData("subscriptions", subs);
-  } catch (err) {
-    console.error("Failed to fetch Reddit subscriptions", err);
-  }
-};
-
-const saveRedditData = async (field, data) => {
-  if (!user) return;
-  try {
-    await setDoc(doc(db, "reddit", user.uid), { [field]: data }, { merge: true });
-    console.log(`${field} saved to Firestore`);
-  } catch (error) {
-    console.error(`Failed to save ${field}`, error);
-  }
-};
-
-const loginWithReddit = () => {
-  window.location.href = "/api/reddit/login"; // Make sure this route returns the Reddit login URL
-};
-
-//Tiktok
-// TikTok
-const [tiktokToken, setTiktokToken] = useState(null);
-const [tiktokOpenId, setTiktokOpenId] = useState(null);
-const [tiktokProfile, setTiktokProfile] = useState(null);
-
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("tt_token");
-  const openId = params.get("tt_openid");
-  if (token && openId) {
-    setTiktokToken(token);
-    setTiktokOpenId(openId);
-    window.history.replaceState({}, document.title, "/dashboard");
-  }
-}, []);
-
-useEffect(() => {
-  if (tiktokToken && tiktokOpenId) fetchTiktokProfile();
-}, [tiktokToken, tiktokOpenId]);
-
-const loginWithTiktok = () => {
-  window.location.href = "/api/tiktok/login";
-};
-
-const fetchTiktokProfile = async () => {
-  try {
-    const res = await axios.get("https://open-api.tiktok.com/oauth/userinfo/v2/", {
-      params: { access_token: tiktokToken, open_id: tiktokOpenId }
-    });
-    setTiktokProfile(res.data.data.user);
-    await saveTiktokData("profile", res.data.data.user);
-  } catch (err) {
-    console.error("Fetch TikTok profile error:", err);
-  }
-};
-
-const saveTiktokData = async (field, data) => {
-  if (!user) return;
-  try {
-    await setDoc(doc(db, "tiktok", user.uid), { [field]: data }, { merge: true });
-    console.log(`TikTok ${field} saved to Firestore`);
-  } catch (e) {
-    console.error("Save TikTok data error:", e);
-  }
-};
-
-
-
-//Linked In
-const [linkedinToken,setLinkedinToken] = useState(null)
-const [linkedinProfile,setLinkedinProfile] = useState(null)
-const [linkedinPosts,setLinkedinPosts] = useState([])
-
-useEffect(() =>{
-    const params = new URLSearchParams(window.location.search);
-  const token = params.get("linkedin_token");
-  if (token) {
-    setLinkedinToken(token);
-    window.history.replaceState({}, document.title, "/dashboard");
-  }
-},[]);
-
-useEffect(() =>{
-  if(linkedinToken){
-    fetchLinkedinProfile();
-    fetchLinkedinPosts();
-  }
-},[linkedinToken]);
-
-const loginWithLinkedIn = async () =>{
-  window.location.href = 'api/linkedin/login'
-}
-const fetchLinkedinProfile = async () =>{
-    try {
-    const res = await axios.get("https://api.linkedin.com/v2/me", {
-      headers: { Authorization: `Bearer ${linkedinToken}` },
-    });
-    setLinkedinProfile(res.data);
-    await saveLinkedInData("profile", res.data);
-  } catch (err) {
-    console.error("LinkedIn profile error:", err);
-  }
-}
-const fetchLinkedinPosts = async () => {
-  try {
-    const res = await axios.get("https://api.linkedin.com/v2/ugcPosts?q=authors&authors=List(urn:li:person:YOUR_ID)", {
-      headers: { Authorization: `Bearer ${linkedinToken}` },
-    });
-    setLinkedinPosts(res.data.elements);
-    await saveLinkedInData("posts", res.data.elements);
-  } catch (err) {
-    console.error("LinkedIn posts error:", err);
-  }
-};
-
-const saveLinkedInData = async (type, data) => {
-  if (!user) return;
-  const ref = doc(db, "linkedin", user.uid);
-  await setDoc(ref, { [type]: data }, { merge: true });
-}
-
-
-  const loginWithTwitter = () => {
-    const verifier = generateCodeVerifier();
-    const challenge = generateCodeChallenge(verifier);
-    sessionStorage.setItem("twitter_verifier", verifier);
-    window.location.href = `/api/twitter/login?challenge=${challenge}`;
-  };
+  const platformList = [
+    { name: "spotify", icon: <FaSpotify className="mr-2" /> },
+    { name: "discord", icon: <FaDiscord className="mr-2" /> },
+    { name: "instagram", icon: <FaInstagram className="mr-2" /> },
+    { name: "linkedin", icon: <FaLinkedin className="mr-2" /> },
+    { name: "github", icon: <FaGithub className="mr-2" /> },
+    { name: "twitter", icon: <FaTwitter className="mr-2" /> },
+    { name: "reddit", icon: <FaReddit className="mr-2" /> },
+    { name: "tiktok", icon: <FaTiktok className="mr-2" /> },
+  ];
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+    <div
+      className={`transition-colors duration-500 min-h-screen p-6 max-w-6x6 mx-auto ${
+        darkMode
+          ? "bg-bg-100 text-text-100"
+          : "bg-light-bg-100 text-light-text-100"
+      }`}
+    >
+      <div className="flex justify-between items-center mb-6">
+        <h1 className={`text-4xl font-bold bg-clip-text text-transparent ${
+          darkMode
+            ? "bg-gradient-to-r from-primary-100 to-primary-300"
+            : "bg-gradient-to-r from-light-primary-100 to-light-primary-300"
+        }`}>
+          Cink
+        </h1>
+        <motion.button
+          onClick={() => setDarkMode(!darkMode)}
+          whileTap={{ scale: 0.85 }}
+          whileHover={{ rotate: 10 }}
+          className={`p-2 rounded-full ${
+            darkMode ? "bg-bg-300 text-text-100" : "bg-light-bg-300 text-light-text-100"
+          }`}
+          aria-label="Toggle dark mode"
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {darkMode ? (
+              <motion.div
+                key="sun"
+                initial={{ rotate: -90, opacity: 0, scale: 0.8 }}
+                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                exit={{ rotate: 90, opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <FaSun className="w-5 h-5" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="moon"
+                initial={{ rotate: 90, opacity: 0, scale: 0.8 }}
+                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                exit={{ rotate: -90, opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <FaMoon className="w-5 h-5" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
+      </div>
 
-      {user ? (
-        <div className="mb-8 bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-semibold mb-2">
+      {user && (
+        <motion.div
+          layout
+          className={`mb-8 p-6 rounded-2xl shadow-xl ${
+            darkMode ? "bg-bg-200" : "bg-light-bg-200"
+          }`}
+        >
+          <h2 className="text-2xl font-semibold mb-1">
             Welcome, {user.displayName || "User"}
           </h2>
-          <p className="text-gray-600">Email: {user.email}</p>
-        </div>
-      ) : (
-        <p className="text-red-600 font-medium">No user logged in.</p>
+          <p className={darkMode ? "text-text-200" : "text-light-text-200"}>{user.email}</p>
+        </motion.div>
       )}
 
-      {/* Instagram */}
-      <div className="mb-8 bg-white p-4 rounded shadow">
-        <h3 className="text-lg font-semibold mb-3">Instagram Status</h3>
-        {instagram ? (
-          <div className="space-y-2">
-            <p>
-              <strong>Username:</strong> {instagram.username}
-            </p>
-            <p>
-              <strong>Account Type:</strong> {instagram.account_type}
-            </p>
-            <p>
-              <strong>Media Count:</strong> {instagram.media_count}
-            </p>
-            <p>
-              <strong>Followers:</strong> {instagram.followers_count || "N/A"}
-            </p>
-            <p>
-              <strong>Likes:</strong> {instagram.likes_count || "N/A"}
-            </p>
-            <p>
-              <strong>Comments:</strong> {instagram.comments_count || "N/A"}
-            </p>
-          </div>
-        ) : (
-          <div>
-            <p className="text-gray-700 mb-2">Instagram not connected</p>
-            <button
-              onClick={loginWithInstagram}
-              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
-            >
-              Connect Instagram
-            </button>
-          </div>
-        )}
+      <div className="mb-10 text-center">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowPrompt(true)}
+          className={`px-6 py-3 font-semibold rounded-full shadow-lg transition-all duration-300 ${
+            darkMode
+              ? "bg-primary-200 hover:bg-primary-300 text-text-100"
+              : "bg-light-primary-200 hover:bg-light-primary-300 text-light-text-100"
+          }`}
+        >
+          + Add Platform
+        </motion.button>
       </div>
 
-      {/* GitHub */}
-      <div className="bg-white p-4 rounded shadow mb-8">
-        <h3 className="text-lg font-semibold mb-4">GitHub Status</h3>
-        {githubData ? (
-          <div className="flex items-center space-x-4">
-            <img
-              src={githubData.avatar_url}
-              alt="GitHub avatar"
-              className="w-20 h-20 rounded-full border"
-            />
-            <div>
-              <p>
-                <strong>Username:</strong> {githubData.login}
-              </p>
-              <p>
-                <strong>Bio:</strong> {githubData.bio || "No bio"}
-              </p>
-              <p>
-                <strong>Public Repos:</strong> {githubData.public_repos}
-              </p>
-              <p>
-                <strong>Followers:</strong> {githubData.followers}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <p>Loading GitHub data...</p>
-        )}
-      </div>
-
-      {/* TikTok */}
-<div className="bg-white p-4 rounded shadow mb-8">
-  <h3 className="text-lg font-semibold mb-4">TikTok Status</h3>
-  {tiktokProfile ? (
-    <div className="flex items-center space-x-4">
-      <img src={tiktokProfile.avatar_url} alt="TikTok Avatar" className="w-16 h-16 rounded-full" />
-      <div>
-        <p><strong>Username:</strong> {tiktokProfile.display_name}</p>
-        <p><strong>Followers:</strong> {tiktokProfile.follower_count}</p>
-        <p><strong>Following:</strong> {tiktokProfile.following_count}</p>
-      </div>
-    </div>
-  ) : (
-    <button
-      onClick={loginWithTiktok}
-      className="px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
-    >
-      Connect TikTok
-    </button>
-  )}
-</div>
-
-
-      {/* Twitter */}
-
-      <div>
-        <h3 className=" font-bold ">Twitter Status</h3>
-        {twitterToken ? (
-          <p>Twitter connected</p>
-        ) : ( 
-          <div>
-            <p>Twitter not Connected</p>
-          <button
-            onClick={loginWithTwitter}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+      <AnimatePresence>
+        {showPrompt && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`mb-10 p-6 rounded-2xl shadow-lg ${
+              darkMode ? "bg-bg-200" : "bg-light-bg-200"
+            }`}
           >
-            Connect Twitter
-          </button>
-          </div>
-        )}
-      </div>
-
-
-        {/* Reddit */}
-
-<div className="bg-white p-4 rounded shadow mb-8">
-  <h3 className="text-lg font-semibold mb-4">Reddit Status</h3>
-  {redditData ? (
-    <div>
-      <p><strong>Username:</strong> {redditData.name}</p>
-      <p><strong>Karma:</strong> {redditData.total_karma}</p>
-      <p><strong>Created:</strong> {new Date(redditData.created_utc * 1000).toLocaleDateString()}</p>
-    </div>
-  ) : (
-    <button
-      onClick={loginWithReddit}
-      className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition"
-    >
-      Connect Reddit
-    </button>
-  )}
-</div>
-
-
-
-      {/* Discord */}
-
-
-      <div className="mb-8 bg-white p-4 rounded shadow">
-  <h3 className="text-lg font-semibold mb-4">Discord Status</h3>
-  {discordUser ? (
-    <div className="flex items-center space-x-4">
-      <img
-        src={`https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`}
-        alt="Discord Avatar"
-        className="w-16 h-16 rounded-full"
-      />
-      <div>
-        <p><strong>Username:</strong> {discordUser.username}#{discordUser.discriminator}</p>
-        <p><strong>ID:</strong> {discordUser.id}</p>
-        <p><strong>Email:</strong> {discordUser.email}</p>
-      </div>
-    </div>
-  ) : (
-    <button onClick={loginWithDiscord} className="px-4 py-2 bg-purple-600 text-white rounded">
-      Connect Discord
-    </button>
-  )}
-</div>
-
-  {/* Linked In */}
-
-
-        <div className="bg-white p-4 rounded shadow mb-8">
-  <h3 className="text-lg font-semibold mb-4">LinkedIn Status</h3>
-  {linkedinProfile ? (
-    <>
-      <p><strong>ID:</strong> {linkedinProfile.id}</p>
-      <p><strong>First Name:</strong> {linkedinProfile.localizedFirstName}</p>
-      <p><strong>Last Name:</strong> {linkedinProfile.localizedLastName}</p>
-      {/* Render posts */}
-      {linkedinPosts.length > 0 && (
-        <div>
-          <h4>Recent Posts</h4>
-          <ul>
-            {linkedinPosts.map(post => (
-              <li key={post.id}>{post.specificContent?.com.linkedin.ugc.ShareContent?.shareCommentary?.text || "No content"}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </>
-  ) : (
-    <button
-      onClick={loginWithLinkedIn}
-      className="px-4 py-2 bg-blue-600 text-white rounded"
-    >
-      Connect LinkedIn
-    </button>
-  )}
-</div>
-
-      {/* Spotify */}
-      <div className="bg-white p-4 rounded shadow">
-        <h3 className="text-lg font-semibold mb-4">Spotify Status</h3>
-
-        {spotifyProfile ? (
-          <>
-            <div className="flex items-center space-x-4">
-              {spotifyProfile.images?.[0]?.url && (
-                <img
-                  src={spotifyProfile.images[0].url}
-                  alt="Spotify Avatar"
-                  className="w-20 h-20 rounded-full border"
-                />
-              )}
-              <div>
-                <p className="text-gray-800">
-                  <strong>Name:</strong> {spotifyProfile.display_name}
-                </p>
-                <p className="text-gray-800">
-                  <strong>Email:</strong> {spotifyProfile.email}
-                </p>
-                <p className="text-gray-800">
-                  <strong>Followers:</strong> {spotifyProfile.followers?.total}
-                </p>
-                <p className="text-gray-800">
-                  <strong>Account Type:</strong> {spotifyProfile.product}
-                </p>
-              </div>
+            <p className="font-semibold mb-4 text-xl">
+              Select a platform to connect:
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {platformList.map(({ name, icon }) => (
+                <motion.button
+                  whileHover={!platformData[name] && { scale: 1.05 }}
+                  whileTap={!platformData[name] && { scale: 0.95 }}
+                  key={name}
+                  onClick={() => handlePlatformLogin(name)}
+                  disabled={platformData[name]}
+                  className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 ${
+                    platformData[name]
+                      ? darkMode
+                        ? "bg-bg-300 text-text-200 cursor-not-allowed"
+                        : "bg-light-bg-300 text-light-text-200 cursor-not-allowed"
+                      : darkMode
+                        ? "bg-accent-100 hover:bg-accent-200 text-text-100"
+                        : "bg-light-accent-100 hover:bg-light-accent-200 text-light-text-100"
+                  }`}
+                >
+                  {icon}
+                  <span>{name.charAt(0).toUpperCase() + name.slice(1)}</span>
+                </motion.button>
+              ))}
             </div>
-            {/* Top Tracks*/}
-            {topTracks.length > 0 && (
-              <div>
-                <h4>Top 10 Tracks</h4>
-                <ul>
-                  {topTracks.map((track, idx) => (
-                    <li key={track.id}>
-                      <span>{idx + 1}.</span>
-                      <img src={track.album.images[0]?.url} alt={track.name} />
-                      <div>
-                        <p>{track.name}</p>
-                        <p>{track.artists.map((a) => a.name).join(", ")}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {/*Top Artists */}
-            {topArtists.length > 0 && (
-              <div>
-                <h4>Top 10 Artists</h4>
-                <ul>
-                  {topArtists.map((artist, idx) => (
-                    <li key={artist.id}>
-                      <span>{idx + 1}.</span>
-                      {artist.images[0]?.url && (
-                        <img src={artist.images[0].url} alt={artist.name} />
-                      )}
-                      <p>{artist.name}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            ;{/*Playlists */}
-            {playlists.length > 0 && (
-              <div>
-                <h4>Your Playlists</h4>
-                <ul>
-                  {playlists.map((playlist) => (
-                    <li key={playlist.id}>
-                      {playlist.images[0]?.url && (
-                        <img src={playlist.images[0].url} alt={playlist.name} />
-                      )}
-                      <div>
-                        <p>{playlist.name}</p>
-                        <p>{playlist.tracks.total} tracks</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            ;{/*Currently Playing */}
-            {currentlyPlaying?.item && (
-              <div>
-                <h4>Currently Playing</h4>
-                <div>
-                  <img
-                    src={currentlyPlaying.item.album.images[0]?.url}
-                    alt={currentlyPlaying.item.name}
-                  />
-                  <div>
-                    <p>{currentlyPlaying.item.name}</p>
-                    <p>
-                      {currentlyPlaying.item.artists
-                        .map((a) => a.name)
-                        .join(", ")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            {spotifyToken && <p>Loading Spotify Profile...</p>}
-            {!spotifyToken && (
-              <button
-                onClick={loginWithSpotify}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-              >
-                Connect Spotify
-              </button>
-            )}
-          </>
+          </motion.div>
         )}
+      </AnimatePresence>
+
+      <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+        {Object.entries(platformData).map(([platform, data]) => (
+          <motion.div
+            key={platform}
+            layout
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className={`p-4 rounded-2xl shadow-lg text-center hover:scale-[1.02] transition-transform duration-200 ${
+              darkMode ? "bg-bg-300" : "bg-light-bg-300"
+            }`}
+          >
+            {data.avatar && (
+              <img
+                src={data.avatar}
+                alt={platform}
+                className="w-16 h-16 rounded-full mx-auto mb-2 border border-white/20"
+              />
+            )}
+            <h4 className="text-lg font-semibold capitalize">{platform}</h4>
+            <p className={darkMode ? "text-text-200" : "text-light-text-200"}>{data.username || "Connected"}</p>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      <div className="hidden">
+        <Spotify user={user} onData={(d) => handleData("spotify", d)} />
+        <Discord user={user} onData={(d) => handleData("discord", d)} />
+        <Instagram user={user} onData={(d) => handleData("instagram", d)} />
+        <LinkedIn user={user} onData={(d) => handleData("linkedin", d)} />
+        <Github user={user} onData={(d) => handleData("github", d)} />
+        <Twitter user={user} onData={(d) => handleData("twitter", d)} />
+        <Reddit user={user} onData={(d) => handleData("reddit", d)} />
+        <Tiktok user={user} onData={(d) => handleData("tiktok", d)} />
       </div>
     </div>
   );
