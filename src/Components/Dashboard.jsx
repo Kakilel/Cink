@@ -12,7 +12,7 @@ function Dashboard() {
 
   // GitHub
   const [githubData, setGithubData] = useState(null);
-  const githubUsername = "18Mori";
+  const githubUsername = "1";
 
   useEffect(() => {
     const fetchGithubData = async () => {
@@ -241,6 +241,176 @@ function Dashboard() {
     }
   };
 
+//Discord
+
+const [discordToken, setDiscordToken] = useState(null);
+const [discordUser, setDiscordUser] = useState(null);
+
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("discord_token");
+  if (token) {
+    setDiscordToken(token);
+    window.history.replaceState({}, document.title, "/dashboard");
+  }
+}, []);
+
+useEffect(() => {
+  if (discordToken) fetchDiscordProfile();
+}, [discordToken]);
+
+const fetchDiscordProfile = async () => {
+  try {
+    const res = await axios.get("https://discord.com/api/users/@me", {
+      headers: { Authorization: `Bearer ${discordToken}` },
+    });
+    setDiscordUser(res.data);
+    saveDiscordData("profile", res.data); // ✅ Save to Firestore
+  } catch (err) {
+    console.error("Failed to fetch Discord user", err);
+  }
+};
+
+
+const loginWithDiscord = () => {
+  window.location.href = "/api/discord/login";
+};
+
+const saveDiscordData = async (field, data) => {
+  if (!user) return;
+  try {
+    await setDoc(
+      doc(db, "discord", user.uid),
+      { [field]: data },
+      { merge: true }
+    );
+    console.log(`${field} saved to Firestore`);
+  } catch (error) {
+    console.error(`Error saving ${field}:`, error);
+  }
+};
+
+//Reddit
+
+const [redditToken, setRedditToken] = useState(null);
+const [redditData, setRedditData] = useState(null);
+
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("reddit_token");
+  if (token) {
+    setRedditToken(token);
+    window.history.replaceState({}, document.title, "/dashboard");
+  }
+}, []);
+
+useEffect(() => {
+  if (redditToken) {
+    fetchRedditData();
+    fetchRedditSubs();
+  }
+}, [redditToken]);
+
+const fetchRedditData = async () => {
+  try {
+    const profileRes = await axios.get("https://oauth.reddit.com/api/v1/me", {
+      headers: { Authorization: `Bearer ${redditToken}` },
+    });
+
+    const profile = profileRes.data;
+    setRedditData(profile);
+    await saveRedditData("profile", profile);
+  } catch (err) {
+    console.error("Failed to fetch Reddit profile", err);
+  }
+};
+
+const fetchRedditSubs = async () => {
+  try {
+    const subsRes = await axios.get(
+      "https://oauth.reddit.com/subreddits/mine/subscriber",
+      {
+        headers: { Authorization: `Bearer ${redditToken}` },
+      }
+    );
+
+    const subs = subsRes.data.data.children.map((s) => s.data.display_name);
+    await saveRedditData("subscriptions", subs);
+  } catch (err) {
+    console.error("Failed to fetch Reddit subscriptions", err);
+  }
+};
+
+const saveRedditData = async (field, data) => {
+  if (!user) return;
+  try {
+    await setDoc(doc(db, "reddit", user.uid), { [field]: data }, { merge: true });
+    console.log(`${field} saved to Firestore`);
+  } catch (error) {
+    console.error(`Failed to save ${field}`, error);
+  }
+};
+
+const loginWithReddit = () => {
+  window.location.href = "/api/reddit/login"; // Make sure this route returns the Reddit login URL
+};
+
+
+
+//Linked In
+const [linkedinToken,setLinkedinToken] = useState(null)
+const [linkedinProfile,setLinkedinProfile] = useState(null)
+const [linkedinPosts,setLinkedinPosts] = useState([])
+
+useEffect(() =>{
+    const params = new URLSearchParams(window.location.search);
+  const token = params.get("linkedin_token");
+  if (token) {
+    setLinkedinToken(token);
+    window.history.replaceState({}, document.title, "/dashboard");
+  }
+},[]);
+
+useEffect(() =>{
+  if(linkedinToken){
+    fetchLinkedinProfile();
+    fetchLinkedinPosts();
+  }
+},[linkedinToken]);
+
+const loginWithLinkedIn = async () =>{
+  window.location.href = 'api/linkedin/login'
+}
+const fetchLinkedinProfile = async () =>{
+    try {
+    const res = await axios.get("https://api.linkedin.com/v2/me", {
+      headers: { Authorization: `Bearer ${linkedinToken}` },
+    });
+    setLinkedinProfile(res.data);
+    await saveLinkedInData("profile", res.data);
+  } catch (err) {
+    console.error("LinkedIn profile error:", err);
+  }
+}
+const fetchLinkedinPosts = async () => {
+  try {
+    const res = await axios.get("https://api.linkedin.com/v2/ugcPosts?q=authors&authors=List(urn:li:person:YOUR_ID)", {
+      headers: { Authorization: `Bearer ${linkedinToken}` },
+    });
+    setLinkedinPosts(res.data.elements);
+    await saveLinkedInData("posts", res.data.elements);
+  } catch (err) {
+    console.error("LinkedIn posts error:", err);
+  }
+};
+
+const saveLinkedInData = async (type, data) => {
+  if (!user) return;
+  const ref = doc(db, "linkedin", user.uid);
+  await setDoc(ref, { [type]: data }, { merge: true });
+}
+
+
   const loginWithTwitter = () => {
     const verifier = generateCodeVerifier();
     const challenge = generateCodeChallenge(verifier);
@@ -348,6 +518,86 @@ function Dashboard() {
           </div>
         )}
       </div>
+
+
+        {/* Reddit */}
+        
+<div className="bg-white p-4 rounded shadow mb-8">
+  <h3 className="text-lg font-semibold mb-4">Reddit Status</h3>
+  {redditData ? (
+    <div>
+      <p><strong>Username:</strong> {redditData.name}</p>
+      <p><strong>Karma:</strong> {redditData.total_karma}</p>
+      <p><strong>Created:</strong> {new Date(redditData.created_utc * 1000).toLocaleDateString()}</p>
+    </div>
+  ) : (
+    <button
+      onClick={loginWithReddit}
+      className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition"
+    >
+      Connect Reddit
+    </button>
+  )}
+</div>
+
+
+
+      {/* Discord */}
+
+
+      <div className="mb-8 bg-white p-4 rounded shadow">
+  <h3 className="text-lg font-semibold mb-4">Discord Status</h3>
+  {discordUser ? (
+    <div className="flex items-center space-x-4">
+      <img
+        src={`https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`}
+        alt="Discord Avatar"
+        className="w-16 h-16 rounded-full"
+      />
+      <div>
+        <p><strong>Username:</strong> {discordUser.username}#{discordUser.discriminator}</p>
+        <p><strong>ID:</strong> {discordUser.id}</p>
+        <p><strong>Email:</strong> {discordUser.email}</p>
+      </div>
+    </div>
+  ) : (
+    <button onClick={loginWithDiscord} className="px-4 py-2 bg-purple-600 text-white rounded">
+      Connect Discord
+    </button>
+  )}
+</div>
+
+  {/* Linked In */}
+
+
+        <div className="bg-white p-4 rounded shadow mb-8">
+  <h3 className="text-lg font-semibold mb-4">LinkedIn Status</h3>
+  {linkedinProfile ? (
+    <>
+      <p><strong>ID:</strong> {linkedinProfile.id}</p>
+      <p><strong>First Name:</strong> {linkedinProfile.localizedFirstName}</p>
+      <p><strong>Last Name:</strong> {linkedinProfile.localizedLastName}</p>
+      {/* Render posts */}
+      {linkedinPosts.length > 0 && (
+        <div>
+          <h4>Recent Posts</h4>
+          <ul>
+            {linkedinPosts.map(post => (
+              <li key={post.id}>{post.specificContent?.com.linkedin.ugc.ShareContent?.shareCommentary?.text || "No content"}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  ) : (
+    <button
+      onClick={loginWithLinkedIn}
+      className="px-4 py-2 bg-blue-600 text-white rounded"
+    >
+      Connect LinkedIn
+    </button>
+  )}
+</div>
 
       {/* Spotify */}
       <div className="bg-white p-4 rounded shadow">

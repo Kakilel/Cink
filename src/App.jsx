@@ -11,14 +11,7 @@ function App() {
   return (
     <>
 <Dashboard/>
-<Router>
-  <Routes>
-    {/* other routes */}
-    <Route path="/privacy" element={<PrivacyPolicy />} />
-  </Routes>
-</Router>
-   
-    </>
+   </>
   )
 }
 
