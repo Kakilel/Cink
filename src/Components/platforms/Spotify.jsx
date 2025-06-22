@@ -121,7 +121,6 @@ function Spotify({ user, onData }) {
 
   return (
     <div className="hidden">
-      {/* This component is meant for data fetching only, nothing is rendered here. */}
       {!token && (
         <button
           onClick={login}
