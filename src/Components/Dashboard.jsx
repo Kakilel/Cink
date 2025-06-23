@@ -1,14 +1,14 @@
 // src/Components/Dashboard.jsx
 import { useContext, useEffect, useState } from "react";
 import { DashboardContext } from "../Contexts/DashboardContext";
-import Spotify from "./platforms/Spotify";
-import Discord from "./platforms/Discord";
-import Instagram from "./platforms/Instagram";
-import LinkedIn from "./platforms/LinkedIn";
-import Github from "./platforms/Github";
-import Twitter from "./platforms/Twitter";
-import Reddit from "./platforms/Reddit";
-import Tiktok from "./platforms/Tiktok";
+import Spotify from "./Spotify";
+import Discord from './Discord'
+import Instagram from './Instagram'
+import LinkedIn from './LinkedIn'
+import Reddit from './Reddit'
+import Tiktok from './Tiktok'
+import Twitter from './Twitter'
+import Github from './Github'
 import { FaSpotify, FaDiscord, FaInstagram, FaLinkedin, FaGithub, FaTwitter, FaReddit, FaTiktok, FaSun,FaMoon,} from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -198,26 +198,26 @@ function Dashboard() {
 
       <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
         {Object.entries(platformData).map(([platform, data]) => (
-        <Link to={`/platform/${platform}`} key={platform}>
-  <motion.div
-    layout
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.3 }}
-    className="bg-bg-300 p-4 rounded-2xl shadow-lg text-center hover:scale-[1.02] transition-transform duration-200 cursor-pointer"
-  >
-    {data.avatar && (
-      <img
-        src={data.avatar}
-        alt={platform}
-        className="w-16 h-16 rounded-full mx-auto mb-2 border border-white/20"
-      />
-    )}
-    <h4 className="text-lg font-semibold capitalize">{platform}</h4>
-    <p className="text-sm text-text-200">{data.username || "Connected"}</p>
-  </motion.div>
-</Link>
-
+          <motion.div
+            key={platform}
+            layout
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className={`p-4 rounded-2xl shadow-lg text-center hover:scale-[1.02] transition-transform duration-200 ${
+              darkMode ? "bg-bg-300" : "bg-light-bg-300"
+            }`}
+          >
+            {data.avatar && (
+              <img
+                src={data.avatar}
+                alt={platform}
+                className="w-16 h-16 rounded-full mx-auto mb-2 border border-white/20"
+              />
+            )}
+            <h4 className="text-lg font-semibold capitalize">{platform}</h4>
+            <p className={darkMode ? "text-text-200" : "text-light-text-200"}>{data.username || "Connected"}</p>
+          </motion.div>
         ))}
       </motion.div>
 

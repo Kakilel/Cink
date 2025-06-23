@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { setDoc, doc } from "firebase/firestore";
-import { db } from "../../firebase";
-import { generateCodeVerifier, generateCodeChallenge } from "../../utils/pkce";
+import { db } from "../firebase";
+import { generateCodeVerifier, generateCodeChallenge } from "../utils/pkce";
 
 function Twitter({ user, onData }) {
   const [twitterToken, setTwitterToken] = useState(null);

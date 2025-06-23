@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { setDoc, doc } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../firebase";
 
 function Tiktok({ user, onData }) {
   const [tiktokToken, setTiktokToken] = useState(null);
