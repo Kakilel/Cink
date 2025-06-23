@@ -20,7 +20,10 @@ export default async function handler(req, res) {
 
     res.redirect(`https://cink.vercel.app/dashboard?twitter_token=${accessToken}`);
   } catch (err) {
-    console.error("Twitter token error:", err.response?.data || err.message);
-    res.status(500).send('Failed to exchange token');
+    console.error("Discord token error:", {
+  status: err.response?.status,
+  data: err.response?.data,
+  message: err.message,
+});
   }
 }

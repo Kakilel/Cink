@@ -23,7 +23,10 @@ export default async function handler(req, res) {
 
     res.redirect(`/dashboard?linkedin_token=${accessToken}`);
   } catch (err) {
-    console.error("LinkedIn OAuth Error:", err.response?.data || err.message);
-    res.status(500).send("OAuth error");
+    console.error("Discord token error:", {
+  status: err.response?.status,
+  data: err.response?.data,
+  message: err.message,
+});
   }
 }
