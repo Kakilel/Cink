@@ -8,6 +8,10 @@ export default async function handler(req, res) {
   const CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET;
   const REDIRECT_URI = process.env.LINKEDIN_REDIRECT_URI;
 
+  if (!code) {
+    return res.status(400).send("Missing authorization code");
+  }
+
   try {
     const tokenRes = await axios.post("https://www.linkedin.com/oauth/v2/accessToken", null, {
       params: {
@@ -17,16 +21,25 @@ export default async function handler(req, res) {
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
       },
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
     });
 
     const accessToken = tokenRes.data.access_token;
 
+    if (!accessToken) {
+      return res.status(400).send("No access token received from LinkedIn");
+    }
+
     res.redirect(`/dashboard?linkedin_token=${accessToken}`);
   } catch (err) {
-    console.error("Discord token error:", {
-  status: err.response?.status,
-  data: err.response?.data,
-  message: err.message,
-});
+    console.error("LinkedIn token error:", {
+      status: err.response?.status,
+      data: err.response?.data,
+      message: err.message,
+    });
+
+    return res.status(500).send("Failed to authenticate with LinkedIn");
   }
 }
