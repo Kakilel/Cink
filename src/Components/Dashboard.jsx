@@ -72,7 +72,7 @@ function Dashboard() {
   ];
 
   return (
-    <div className={`transition-colors duration-500 min-h-screen p-6 max-w-6xl mx-auto ${darkMode ? "bg-bg-100 text-text-100" : "bg-light-bg-100 text-light-text-100"}`}>
+    <div className={`transition-colors duration-500 min-h-screen p-6 max-w-6x1  ${darkMode ? "bg-bg-100 text-text-100" : "bg-light-bg-100 text-light-text-100"}`}>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className={`text-4xl font-bold bg-clip-text text-transparent ${darkMode ? "bg-gradient-to-r from-primary-100 to-primary-300" : "bg-gradient-to-r from-light-primary-100 to-light-primary-300"}`}>
