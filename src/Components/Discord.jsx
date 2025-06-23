@@ -1,82 +1,71 @@
-// src/Components/platforms/Discord.jsx
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import { Link } from "react-router-dom";
 
-function Discord({ user, onData }) {
-  const [token, setToken] = useState(null);
+function DiscordPage({ user }) {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const t = params.get("discord_token");
-    if (t) {
-      setToken(t);
-      window.history.replaceState({}, document.title, "/dashboard");
-    }
-  }, []);
-
-  useEffect(() => {
-    if (token) fetchDiscordProfile();
-  }, [token]);
-
-  const fetchDiscordProfile = async () => {
-    try {
-      const res = await axios.get("https://discord.com/api/users/@me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setProfile(res.data);
-      await save("profile", res.data);
-      if (onData)
-        onData({
-          avatar: `https://cdn.discordapp.com/avatars/${res.data.id}/${res.data.avatar}.png`,
-          username: res.data.username,
-        });
-    } catch (err) {
-      console.error("Failed to fetch Discord user", err);
-    }
-  };
-
-  const save = async (field, data) => {
     if (!user) return;
-    await setDoc(doc(db, "discord", user.uid), { [field]: data }, { merge: true });
-  };
+    const fetch = async () => {
+      const ref = doc(db, "discord", user.uid);
+      const snapshot = await getDoc(ref);
+      if (snapshot.exists()) {
+        setProfile(snapshot.data().profile);
+      }
+    };
+    fetch();
+  }, [user]);
 
-  const login = () => {
-    window.location.href = "/api/discord/login";
-  };
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex justify-center items-center text-lg font-semibold">
+        Loading Discord data...
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white p-4 rounded shadow mb-8">
-      <h3 className="text-lg font-semibold mb-4">Discord Status</h3>
-      {profile ? (
-        <div className="flex items-center space-x-4">
+    <div className="min-h-screen p-6 bg-[#5865F2] text-white">
+      <div className="max-w-3xl mx-auto space-y-8">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold"> Discord Profile</h1>
+          <Link to="/dashboard" className="text-sm underline hover:text-gray-200">
+            ← Back to Dashboard
+          </Link>
+        </div>
+
+        <div className="flex items-center space-x-6 bg-white/10 rounded-xl p-6 shadow-lg">
           <img
             src={`https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`}
             alt="Discord Avatar"
-            className="w-16 h-16 rounded-full"
+            className="w-24 h-24 rounded-full border-4 border-white"
           />
           <div>
-            <p><strong>Username:</strong> {profile.username}#{profile.discriminator}</p>
-            <p><strong>Email:</strong> {profile.email}</p>
+            <p className="text-xl font-semibold">
+              {profile.username}#{profile.discriminator}
+            </p>
+            <p className="text-sm text-white/80">ID: {profile.id}</p>
+            <p className="text-sm text-white/80">Email: {profile.email}</p>
+            <p className="text-sm text-white/80">Verified: {profile.verified ? "✅" : "❌"}</p>
+            {profile.banner && (
+              <p className="mt-2 text-sm">
+                Banner: <a
+                  href={`https://cdn.discordapp.com/banners/${profile.id}/${profile.banner}.png`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline text-white"
+                >
+                  View
+                </a>
+              </p>
+            )}
           </div>
         </div>
-      ) : (
-        <button onClick={login} className="px-4 py-2 bg-purple-600 text-white rounded">
-          Connect Discord
-        </button>
-      )}
+      </div>
     </div>
   );
 }
 
-export default Discord;
-
-
-
-
-
-
-
-
+export default DiscordPage;
