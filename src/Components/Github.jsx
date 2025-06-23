@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-function Github({ username = "1", onData }) {
+function Github({ username = "Kakilel", onData }) {
   const [data, setData] = useState(null);
 
   useEffect(() => {

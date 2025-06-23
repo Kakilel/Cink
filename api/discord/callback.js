@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     client_secret: process.env.DISCORD_CLIENT_SECRET,
     grant_type: 'authorization_code',
     code,
-    redirect_uri: 'https://cink.com/api/discord/callback?provider=discord', // must match your Discord app
+    redirect_uri: 'https://cink.vercel.app/api/discord/callback?provider=discord', // must match your Discord app
     scope: 'identify email',
   });
 
