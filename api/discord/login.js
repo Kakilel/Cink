@@ -1,8 +1,9 @@
-export default async function handler(req, res) {
-  const CLIENT_ID = process.env.DISCORD_CLIENT_ID;
-  const REDIRECT_URI = encodeURIComponent("https://cink.vercel.app/api/discord/callback");
-  const SCOPE = "identify email";
+export default function handler(req, res) {
+  const redirectUri = process.env.DISCORD_REDIRECT_URI;
 
-  const authUrl = `https://discord.com/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}&scope=${SCOPE}&redirect_uri=${REDIRECT_URI}`;
-  res.redirect(authUrl);
+  const url = `https://discord.com/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+    redirectUri
+  )}&response_type=code&scope=identify%20email`;
+
+  res.redirect(url);
 }
