@@ -1,9 +1,12 @@
+// /api/tiktok/login.js
 export default function handler(req, res) {
-  const clientKey = process.env.TIKTOK_CLIENT_KEY;
-  const redirectUri = process.env.TIKTOK_REDIRECT_URI;
+  const CLIENT_KEY = process.env.TIKTOK_CLIENT_KEY;
+  const REDIRECT_URI = process.env.TIKTOK_REDIRECT_URI;
   const scope = "user.info.basic";
-  const state = Math.random().toString(36).substring(2);
 
-  const authUrl = `https://www.tiktok.com/v2/auth/authorize/?client_key=${clientKey}&response_type=code&scope=${scope}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
+  const authUrl = `https://www.tiktok.com/v2/auth/authorize/?client_key=${CLIENT_KEY}&redirect_uri=${encodeURIComponent(
+    REDIRECT_URI
+  )}&response_type=code&scope=${scope}&state=your_custom_state`;
+
   res.redirect(authUrl);
 }
