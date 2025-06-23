@@ -1,3 +1,4 @@
+// Updated Dashboard with Spotify and Discord modals
 import { useContext, useEffect, useState } from "react";
 import { DashboardContext } from "../Contexts/DashboardContext";
 import Spotify from "./Spotify";
@@ -9,18 +10,7 @@ import Tiktok from "./Tiktok";
 import Twitter from "./Twitter";
 import Github from "./Github";
 
-import {
-  FaSpotify,
-  FaDiscord,
-  FaInstagram,
-  FaLinkedin,
-  FaGithub,
-  FaTwitter,
-  FaReddit,
-  FaTiktok,
-  FaSun,
-  FaMoon,
-} from "react-icons/fa";
+import { FaSpotify, FaDiscord, FaInstagram, FaLinkedin, FaGithub, FaTwitter, FaReddit, FaTiktok, FaSun, FaMoon,} from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -33,7 +23,8 @@ function Dashboard() {
     return storedTheme === "light" ? false : true;
   });
   const [showGithubModal, setShowGithubModal] = useState(false);
-  const navigate = useNavigate();
+  const [showSpotifyModal, setShowSpotifyModal] = useState(false);
+  const [showDiscordModal, setShowDiscordModal] = useState(false);
 
   const handleData = (platform, data) => {
     setPlatformData((prev) => ({ ...prev, [platform]: data }));
@@ -179,7 +170,8 @@ function Dashboard() {
             transition={{ duration: 0.3 }}
             onClick={() => {
               if (platform === "github") setShowGithubModal(true);
-              if (platform === "spotify") navigate("/spotify");
+              else if (platform === "spotify") setShowSpotifyModal(true);
+              else if (platform === "discord") setShowDiscordModal(true);
             }}
             className={`cursor-pointer p-4 rounded-2xl shadow-lg text-center hover:scale-[1.02] transition-transform duration-200 ${
               darkMode ? "bg-bg-300" : "bg-light-bg-300"
@@ -215,7 +207,37 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Hidden Fetchers */}
+      {/* Spotify Modal */}
+      {showSpotifyModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+          <div className="bg-white dark:bg-bg-300 p-6 rounded-2xl shadow-lg max-w-2xl w-full relative">
+            <button
+              className="absolute top-4 right-6 text-xl font-bold"
+              onClick={() => setShowSpotifyModal(false)}
+            >
+              ×
+            </button>
+            <Spotify user={user} onData={(d) => handleData("spotify", d)} />
+          </div>
+        </div>
+      )}
+
+      {/* Discord Modal */}
+      {showDiscordModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+          <div className="bg-white dark:bg-bg-300 p-6 rounded-2xl shadow-lg max-w-xl w-full relative">
+            <button
+              className="absolute top-4 right-6 text-xl font-bold"
+              onClick={() => setShowDiscordModal(false)}
+            >
+              ×
+            </button>
+            <Discord user={user} onData={(d) => handleData("discord", d)} />
+          </div>
+        </div>
+      )}
+
+      {/* Hidden Platform Components */}
       <div className="hidden">
         <Spotify user={user} onData={(d) => handleData("spotify", d)} />
         <Discord user={user} onData={(d) => handleData("discord", d)} />
