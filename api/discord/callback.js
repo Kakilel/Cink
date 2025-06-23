@@ -21,14 +21,12 @@ export default async function handler(req, res) {
 
     const access_token = tokenRes.data.access_token;
 
-    // Optional: Fetch user profile
     const userRes = await axios.get('https://discord.com/api/users/@me', {
       headers: {
         Authorization: `Bearer ${access_token}`,
       },
     });
 
-    // Handle user data (save to Firestore, session, etc.)
     res.redirect(`/dashboard?discord_token=${access_token}`);
   } catch (err) {
     console.error('Discord token exchange failed:', err.response?.data || err.message);
